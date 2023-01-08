@@ -31,7 +31,7 @@ namespace Presentation.WebApi
 
             app.UseCors(option => option.AllowAnyOrigin()
                                         .AllowAnyMethod()
-                                            .AllowAnyHeader());
+                                        .AllowAnyHeader());
 
             app.UseErrorHandlingExtension();
             app.UseSwaggerExtension();
