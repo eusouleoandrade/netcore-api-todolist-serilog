@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Presentation.WebApi.Options;
+using Serilog;
 
 namespace Presentation.WebApi.Middlewares
 {
@@ -40,7 +41,12 @@ namespace Presentation.WebApi.Middlewares
                 });
             }
 
-            await _next(httpContext);
+           // Aplicar o correlationId no logger
+            var logger = httpContext.RequestServices.GetRequiredService<ILogger<CorrelationIdHandlerMiddleware>>();
+            using (logger.BeginScope("{@CorrelationId}", correlationId))
+            {
+                await _next(httpContext);
+            }
         }
     }
 }

@@ -16,12 +16,13 @@ namespace Presentation.WebApi.Controllers.v1
     {
         private readonly IMapper _mapper;
         private readonly NotificationContext _notificationContext;
+        private readonly ILogger<TodoController> _logger;
 
-        public TodoController(IMapper mapper,
-            NotificationContext notificationContext)
+        public TodoController(IMapper mapper, NotificationContext notificationContext, ILogger<TodoController> logger)
         {
             _mapper = mapper;
             _notificationContext = notificationContext;
+            _logger = logger;
         }
 
         /// <summary>
@@ -35,7 +36,11 @@ namespace Presentation.WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(Response))]
         public async Task<IActionResult> Get([FromServices] IGetAllTodoUseCase getAllTodoUseCase)
         {
+            _logger.LogInformation("Inicia request {0}", nameof(Get));
+
             var useCaseResponse = await getAllTodoUseCase.RunAsync();
+
+            _logger.LogInformation("Finaliza request {0} com sucesso.", nameof(Get));
 
             return Ok(new Response<IReadOnlyList<TodoQuery>>(useCaseResponse, true));
         }
@@ -50,9 +55,10 @@ namespace Presentation.WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Response<CreateTodoQuery>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Response))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(Response))]
-        public async Task<IActionResult> Post([FromBody] CreateTodoRequest request,
-            [FromServices] ICreateTodoUseCase createTodoUseCase)
+        public async Task<IActionResult> Post([FromBody] CreateTodoRequest request, [FromServices] ICreateTodoUseCase createTodoUseCase)
         {
+            _logger.LogInformation("Inicia request {0}", nameof(Post));
+
             var useCaseResponse = await createTodoUseCase.RunAsync(_mapper.Map<CreateTodoUseCaseRequest>(request));
 
             if (createTodoUseCase.HasErrorNotification)
@@ -62,6 +68,8 @@ namespace Presentation.WebApi.Controllers.v1
             }
 
             var response = _mapper.Map<CreateTodoQuery>(useCaseResponse);
+
+            _logger.LogInformation("Finaliza request {0} com sucesso.", nameof(Post));
 
             return Created($"/api/v1/todo/{response.Id}", new Response<CreateTodoQuery>(data: response, succeeded: true));
         }
@@ -76,9 +84,10 @@ namespace Presentation.WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Response))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(Response))]
-        public async Task<IActionResult> Delete([FromRoute(Name = "id")] int id,
-            [FromServices] IDeleteTodoUseCase deleteTodoUsecase)
+        public async Task<IActionResult> Delete([FromRoute(Name = "id")] int id, [FromServices] IDeleteTodoUseCase deleteTodoUsecase)
         {
+            _logger.LogInformation("Inicia request {0}", nameof(Delete));
+
             await deleteTodoUsecase.RunAsync(id);
 
             if (deleteTodoUsecase.HasErrorNotification)
@@ -86,6 +95,8 @@ namespace Presentation.WebApi.Controllers.v1
                 _notificationContext.AddErrorNotifications(deleteTodoUsecase);
                 return BadRequest();
             }
+
+            _logger.LogInformation("Finaliza request {0} com sucesso.", nameof(Delete));
 
             return NoContent();
         }
@@ -100,9 +111,10 @@ namespace Presentation.WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Response<GetTodoQuery>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Response))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(Response))]
-        public async Task<IActionResult> Get([FromRoute(Name = "id")] int id,
-            [FromServices] IGetTodoUseCase getTodoUseCase)
+        public async Task<IActionResult> Get([FromRoute(Name = "id")] int id, [FromServices] IGetTodoUseCase getTodoUseCase)
         {
+            _logger.LogInformation("Inicia request {0}", nameof(Get));
+
             var useCaseResponse = await getTodoUseCase.RunAsync(id);
 
             if (getTodoUseCase.HasErrorNotification)
@@ -112,6 +124,8 @@ namespace Presentation.WebApi.Controllers.v1
             }
 
             var response = _mapper.Map<GetTodoQuery>(useCaseResponse);
+
+            _logger.LogInformation("Finaliza request {0} com sucesso.", nameof(Get));
 
             return Ok(new Response<GetTodoQuery>(succeeded: true, data: response));
         }
@@ -127,10 +141,10 @@ namespace Presentation.WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Response))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Response))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(Response))]
-        public async Task<IActionResult> Put([FromRoute(Name = "id")] int id,
-            [FromBody] UpdateTodoRequest request,
-            [FromServices] IUpdateTodoUseCase updateTodoUseCase)
+        public async Task<IActionResult> Put([FromRoute(Name = "id")] int id, [FromBody] UpdateTodoRequest request, [FromServices] IUpdateTodoUseCase updateTodoUseCase)
         {
+            _logger.LogInformation("Inicia request {0}", nameof(Put));
+
             await updateTodoUseCase.RunAsync(new UpdateTodoUseCaseRequest(id, request.Title, request.Done));
 
             if (updateTodoUseCase.HasErrorNotification)
@@ -138,6 +152,8 @@ namespace Presentation.WebApi.Controllers.v1
                 _notificationContext.AddErrorNotifications(updateTodoUseCase);
                 return BadRequest();
             }
+
+            _logger.LogInformation("Finaliza request {0} com sucesso.", nameof(Put));
 
             return Ok(new Response(succeeded: true));
         }
@@ -153,10 +169,10 @@ namespace Presentation.WebApi.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Response))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Response))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(Response))]
-        public async Task<IActionResult> Patch([FromRoute(Name = "id")] int id,
-            [FromBody] SetDoneTodoRequest request,
-            [FromServices] ISetDoneTodoUseCase setDoneTodoUseCase)
+        public async Task<IActionResult> Patch([FromRoute(Name = "id")] int id, [FromBody] SetDoneTodoRequest request, [FromServices] ISetDoneTodoUseCase setDoneTodoUseCase)
         {
+            _logger.LogInformation("Inicia request {0}", nameof(Patch));
+
             await setDoneTodoUseCase.RunAsync(new SetDoneTodoUseCaseRequest(id, request.Done));
 
             if (setDoneTodoUseCase.HasErrorNotification)
@@ -164,6 +180,8 @@ namespace Presentation.WebApi.Controllers.v1
                 _notificationContext.AddErrorNotifications(setDoneTodoUseCase);
                 return BadRequest();
             }
+
+            _logger.LogInformation("Finaliza request {0} com sucesso.", nameof(Patch));
 
             return Ok(new Response(succeeded: true));
         }

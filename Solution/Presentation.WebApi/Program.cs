@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Core.Application.Ioc;
 using Infra.Persistence.Ioc;
 using Presentation.WebApi.Extensions;
+using Serilog;
 
 namespace Presentation.WebApi 
 {
@@ -12,6 +13,11 @@ namespace Presentation.WebApi
         {
             // Configure services
             var builder = WebApplication.CreateBuilder(args);
+            
+            // logger
+            SerilogExtension.AddSerilog(builder.Configuration);
+            builder.Host.UseSerilog(Log.Logger);
+            
             builder.Services.AddPersistenceLayer();
             builder.Services.AddApplicationLayer();
             builder.Services.AddControllerExtension();

@@ -18,7 +18,7 @@ namespace Infra.Persistence.Repositories
         public async Task<Todo?> CreateAsync(Todo entity)
         {
             try
-            {
+            {           
                 string insertSql = @"INSERT INTO todo (title, done)
                                     VALUES(@title, @done)
                                     RETURNING id;";
