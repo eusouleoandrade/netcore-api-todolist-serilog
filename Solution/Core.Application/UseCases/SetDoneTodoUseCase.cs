@@ -23,6 +23,12 @@ namespace Core.Application.UseCases
         {
             var getTodoUseCaseResponse = await _getTodoUseCase.RunAsync(request.Id);
 
+            if (getTodoUseCaseResponse is null)
+            {
+                AddErrorNotification(Msg.OBJECT_X0_IS_NULL_COD, Msg.OBJECT_X0_IS_NULL_TXT.ToFormat("getTodoUseCaseResponse"));
+                return default;
+            }
+
             if (_getTodoUseCase.HasErrorNotification)
             {
                 AddErrorNotifications(_getTodoUseCase);
