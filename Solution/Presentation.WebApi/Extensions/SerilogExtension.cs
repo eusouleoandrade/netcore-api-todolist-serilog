@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
@@ -5,6 +6,7 @@ using Serilog.Filters;
 
 namespace Presentation.WebApi.Extensions
 {
+    [ExcludeFromCodeCoverage]
     public static class SerilogExtension
     {
         public static void AddSerilog(IConfiguration configuration)

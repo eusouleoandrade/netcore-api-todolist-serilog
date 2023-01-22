@@ -26,10 +26,8 @@ namespace Presentation.WebApi.Middlewares
             }
             catch (Exception ex)
             {
-                // logger
-                string? method = httpContext.Request?.Method;
-                string? path = httpContext.Request?.Path.Value;
-                Log.Error(ex, "Finzaliza request com erros. Method: {method} - Path: {path}", method, path);
+                // Logger
+                Log.Error(ex, "Finalizes request with errors.");
 
                 string message;
 

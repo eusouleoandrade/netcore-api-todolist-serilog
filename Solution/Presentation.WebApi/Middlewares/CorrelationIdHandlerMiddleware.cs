@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Presentation.WebApi.Options;
-using Serilog;
 
 namespace Presentation.WebApi.Middlewares
 {
@@ -31,7 +30,7 @@ namespace Presentation.WebApi.Middlewares
             // Add correlationId in the traceIdentifier of httpContext
             httpContext.TraceIdentifier = correlationId;
 
-            // Aplica o correlationId ao cabeçalho de resposta para rastreamento lado cliente
+            // Add correlationId in the header response
             if (_options.IncludeInResponse)
             {
                 httpContext.Response.OnStarting(() =>
@@ -41,7 +40,7 @@ namespace Presentation.WebApi.Middlewares
                 });
             }
 
-           // Aplicar o correlationId no logger
+           // Add correlationId in the logger
             var logger = httpContext.RequestServices.GetRequiredService<ILogger<CorrelationIdHandlerMiddleware>>();
             using (logger.BeginScope("{@CorrelationId}", correlationId))
             {

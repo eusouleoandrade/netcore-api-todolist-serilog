@@ -11,13 +11,13 @@ namespace Presentation.WebApi
     {
         public static void Main(string[] args)
         {
-            // Configure services
             var builder = WebApplication.CreateBuilder(args);
             
-            // logger
+            // Configure logger
             SerilogExtension.AddSerilog(builder.Configuration);
             builder.Host.UseSerilog(Log.Logger);
             
+            // Configure services
             builder.Services.AddPersistenceLayer();
             builder.Services.AddApplicationLayer();
             builder.Services.AddControllerExtension();
@@ -40,6 +40,7 @@ namespace Presentation.WebApi
                                         .AllowAnyHeader());
 
             app.UseErrorHandlingExtension();
+            app.UseHttpRequestHandlingExtension();
             app.UseSwaggerExtension();
             app.UseHttpsRedirection();
             app.UseAuthorization();

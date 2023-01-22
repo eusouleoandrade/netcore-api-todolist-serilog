@@ -29,9 +29,7 @@ namespace Presentation.WebApi.Filters
                 string notifications = JsonSerializer.Serialize(response);
 
                 // logger
-                string? method = context.HttpContext.Request?.Method;
-                string? path = context.HttpContext.Request?.Path.Value;
-                Log.Warning("Finzaliza request com notificações. Method: {method} - Path: {path} - Notifications: {notifications}", method, path, notifications);
+                Log.Warning("Finzaliza request com notificações. Notifications: {notifications}", notifications);
 
                 await context.HttpContext.Response.WriteAsync(notifications);
 
