@@ -5,6 +5,7 @@ using Core.Application.Resources;
 using Dapper.Contrib.Extensions;
 using Infra.Persistence.Configs;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Infra.Persistence.Repositories
 {
@@ -13,14 +14,23 @@ namespace Infra.Persistence.Repositories
         where TEntity : class
         where TId : struct
     {
-        public GenericRepositoryAsync(IConfiguration configuration)
-            : base(configuration) { }
+        private readonly ILogger _logger;
+
+        public GenericRepositoryAsync(IConfiguration configuration, ILogger<GenericRepositoryAsync<TEntity, TId>> logger)
+            : base(configuration)
+        {
+            _logger = logger;
+        }
 
         public virtual async Task<TId?> InsertAsync(TEntity entity)
         {
             try
             {
+                _logger.LogInformation(message: "Start repository GenericRepositoryAsync > method {0}.", nameof(InsertAsync));
+
                 var id = await _connection.InsertAsync<TEntity>(entity);
+
+                _logger.LogInformation("Finishes successfully repository GenericRepositoryAsync > method {0}.", nameof(InsertAsync));
 
                 return (TId)Convert.ChangeType(id, typeof(TId));
             }
@@ -34,7 +44,13 @@ namespace Infra.Persistence.Repositories
         {
             try
             {
-                return await _connection.DeleteAsync<TEntity>(entity);
+                _logger.LogInformation(message: "Start repository GenericRepositoryAsync > method {0}.", nameof(DeleteAsync));
+
+                bool deleted = await _connection.DeleteAsync<TEntity>(entity);
+
+                _logger.LogInformation("Finishes successfully repository GenericRepositoryAsync > method {0}.", nameof(DeleteAsync));
+
+                return deleted;
             }
             catch (Exception ex)
             {
@@ -46,7 +62,13 @@ namespace Infra.Persistence.Repositories
         {
             try
             {
-                return await _connection.GetAllAsync<TEntity>();
+                _logger.LogInformation(message: "Start repository GenericRepositoryAsync > method {0}.", nameof(GetAllAsync));
+
+                var entities = await _connection.GetAllAsync<TEntity>();
+
+                _logger.LogInformation("Finishes successfully repository GenericRepositoryAsync > method {0}.", nameof(GetAllAsync));
+
+                return entities;
             }
             catch (Exception ex)
             {
@@ -58,7 +80,13 @@ namespace Infra.Persistence.Repositories
         {
             try
             {
-                return await _connection.GetAsync<TEntity>(id);
+                _logger.LogInformation(message: "Start repository GenericRepositoryAsync > method {0}.", nameof(GetAsync));
+
+                var entity = await _connection.GetAsync<TEntity>(id);
+
+                _logger.LogInformation("Finishes successfully repository GenericRepositoryAsync > method {0}.", nameof(GetAsync));
+
+                return entity;
             }
             catch (Exception ex)
             {
@@ -70,7 +98,13 @@ namespace Infra.Persistence.Repositories
         {
             try
             {
-                return await _connection.UpdateAsync<TEntity>(entity);
+                _logger.LogInformation(message: "Start repository GenericRepositoryAsync > method {0}.", nameof(UpdateAsync));
+
+                bool updated = await _connection.UpdateAsync<TEntity>(entity);
+
+                _logger.LogInformation("Finishes successfully repository GenericRepositoryAsync > method {0}.", nameof(UpdateAsync));
+
+                return updated;
             }
             catch (Exception ex)
             {

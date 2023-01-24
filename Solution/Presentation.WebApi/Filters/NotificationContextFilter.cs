@@ -29,7 +29,7 @@ namespace Presentation.WebApi.Filters
                 string notifications = JsonSerializer.Serialize(response);
 
                 // logger
-                Log.Warning("Finzaliza request com notificações. Notifications: {notifications}", notifications);
+                Log.Warning("Finalizes request with notifications. Notifications: {notifications}", notifications);
 
                 await context.HttpContext.Response.WriteAsync(notifications);
 
