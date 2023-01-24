@@ -8,7 +8,7 @@ using Core.Application.Dtos.Requests;
 using Core.Application.Dtos.Responses;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Tests.Unit.Common;
+using Tests.Unit.Extensions;
 
 namespace Tests.Unit.Application.UseCases
 {
@@ -68,8 +68,8 @@ namespace Tests.Unit.Application.UseCases
             updateTodoUseCase.ErrorNotifications.Should().BeEmpty();
             
             _loggerMock
-                .VerifyLogging("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information)
-                .VerifyLogging("Finishes successfully useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
+                .VerifyLogger("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information)
+                .VerifyLogger("Finishes successfully useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>

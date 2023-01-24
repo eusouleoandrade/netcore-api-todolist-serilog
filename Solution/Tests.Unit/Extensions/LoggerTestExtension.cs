@@ -1,11 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Tests.Unit.Common
+namespace Tests.Unit.Extensions
 {
-    public static class LoggerTest
+    public static class LoggerTestExtension
     {
-        public static Mock<ILogger<T>> VerifyLogging<T>(this Mock<ILogger<T>> logger, string expectedMessage, LogLevel expectedLogLevel = LogLevel.Debug, int times = 1)
+        public static Mock<ILogger<T>> VerifyLogger<T>(this Mock<ILogger<T>> logger, string expectedMessage, LogLevel expectedLogLevel = LogLevel.Debug, int times = 1)
         {
             Func<object, Type, bool> state = (v, t) => v.ToString().CompareTo(expectedMessage) == 0;
 
@@ -18,6 +22,6 @@ namespace Tests.Unit.Common
                     It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)), Times.Exactly(times));
 
             return logger;
-        }
+        } 
     }
 }
