@@ -20,10 +20,10 @@ namespace Tests.Unit.Application.UseCases
 
         public CreateTodoUseCaseTest()
         {
-            // Mock repository
+            // Repository mock
             _todoRepositoryAsyncMock = new Mock<ITodoRepositoryAsync>();
 
-            // Mock logger
+            // Logger mock
             _loggerMock = new Mock<ILogger<CreateTodoUseCase>>();
 
             // Set auto mapper configs
