@@ -1,107 +1,113 @@
-﻿// using AutoMapper;
-// using Core.Application.Dtos.Requests;
-// using Core.Application.Dtos.Responses;
-// using Core.Application.Interfaces.Repositories;
-// using Core.Application.Interfaces.UseCases;
-// using Core.Application.Mappings;
-// using Core.Application.UseCases;
-// using Core.Domain.Entities;
-// using FluentAssertions;
-// using Moq;
-// using Xunit;
+﻿using AutoMapper;
+using Core.Application.Dtos.Requests;
+using Core.Application.Dtos.Responses;
+using Core.Application.Interfaces.Repositories;
+using Core.Application.Interfaces.UseCases;
+using Core.Application.Mappings;
+using Core.Application.UseCases;
+using Core.Domain.Entities;
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
-// namespace Tests.Unit.Application.UseCases
-// {
-//     public class SetDoneTodoUseCaseTest
-//     {
-//         private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
-//         private readonly Mock<IGetTodoUseCase> _getTodoUseCaseMock;
+namespace Tests.Unit.Application.UseCases
+{
+    public class SetDoneTodoUseCaseTest
+    {
+        private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
+        private readonly Mock<IGetTodoUseCase> _getTodoUseCaseMock;
 
-//         public SetDoneTodoUseCaseTest()
-//         {
-//             // Repository mock
-//             _genericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
+        private readonly Mock<ILogger<SetDoneTodoUseCase>> _loggerMock;
 
-//             // UseCase mock
-//             _getTodoUseCaseMock = new Mock<IGetTodoUseCase>();
-//         }
+        public SetDoneTodoUseCaseTest()
+        {
+            // Repository mock
+            _genericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
 
-//         /// <summary>
-//         /// Should execute successfully
-//         /// </summary>
-//         /// <param name="id"></param>
-//         /// <param name="title"></param>
-//         /// <param name="done"></param>
-//         /// <returns></returns>
-//         [Theory(DisplayName = "Should execute successfully")]
-//         [InlineData(1, "Ir ao mercado.", true)]
-//         [InlineData(2, "Ir ao Dentista.", false)]
-//         [InlineData(3, "Fazer investimentos.", true)]
-//         [InlineData(4, "Pagar as contas.", false)]
-//         public async Task ShouldExecuteSucessfully(int id, string title, bool done)
-//         {
-//             // Arranje
-//             var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
-//             _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
+            // Logger mock
+            _loggerMock = new Mock<ILogger<SetDoneTodoUseCase>>();
 
-//             var updateGenericRepositoryAsyncResponse = true;
-//             _genericRepositoryAsyncMock.Setup(x => x.UpdateAsync(It.IsAny<Todo>())).ReturnsAsync(updateGenericRepositoryAsyncResponse);
+            // UseCase mock
+            _getTodoUseCaseMock = new Mock<IGetTodoUseCase>();
+        }
 
-//             var setDoneTodoUseCaseRequest = new SetDoneTodoUseCaseRequest(id, done);
+        /// <summary>
+        /// Should execute successfully
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="title"></param>
+        /// <param name="done"></param>
+        /// <returns></returns>
+        [Theory(DisplayName = "Should execute successfully")]
+        [InlineData(1, "Ir ao mercado.", true)]
+        [InlineData(2, "Ir ao Dentista.", false)]
+        [InlineData(3, "Fazer investimentos.", true)]
+        [InlineData(4, "Pagar as contas.", false)]
+        public async Task ShouldExecuteSucessfully(int id, string title, bool done)
+        {
+            // Arranje
+            var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
+            _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
 
-//             var setDoneTodoUseCase = new SetDoneTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object);
+            var updateGenericRepositoryAsyncResponse = true;
+            _genericRepositoryAsyncMock.Setup(x => x.UpdateAsync(It.IsAny<Todo>())).ReturnsAsync(updateGenericRepositoryAsyncResponse);
 
-//             // Act
-//             var setDoneTodoUseCaseResponse = await setDoneTodoUseCase.RunAsync(setDoneTodoUseCaseRequest);
+            var setDoneTodoUseCaseRequest = new SetDoneTodoUseCaseRequest(id, done);
 
-//             // Assert
-//             setDoneTodoUseCaseResponse.Should().BeTrue();
+            var setDoneTodoUseCase = new SetDoneTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _loggerMock.Object);
 
-//             setDoneTodoUseCase.HasErrorNotification.Should().BeFalse();
+            // Act
+            var setDoneTodoUseCaseResponse = await setDoneTodoUseCase.RunAsync(setDoneTodoUseCaseRequest);
 
-//             setDoneTodoUseCase.ErrorNotifications.Should().HaveCount(0);
-//             setDoneTodoUseCase.ErrorNotifications.Should().BeEmpty();
-//         }
+            // Assert
+            setDoneTodoUseCaseResponse.Should().BeTrue();
 
-//         /// <summary>
-//         /// Should not execute successfully when failed to update
-//         /// </summary>
-//         /// <param name="id"></param>
-//         /// <param name="title"></param>
-//         /// <param name="done"></param>
-//         /// <returns></returns>
-//         [Theory(DisplayName = "Should not execute successfully when failed to update")]
-//         [InlineData(1, "Ir ao mercado.", true)]
-//         [InlineData(2, "Ir ao Dentista.", false)]
-//         [InlineData(3, "Fazer investimentos.", true)]
-//         [InlineData(4, "Pagar as contas.", false)]
-//         public async Task ShouldNotExecute_WhenFailedToUpdate(int id, string title, bool done)
-//         {
-//             // Arranje
-//             var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
-//             _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
+            setDoneTodoUseCase.HasErrorNotification.Should().BeFalse();
 
-//             var updateGenericRepositoryAsyncResponse = false;
-//             _genericRepositoryAsyncMock.Setup(x => x.UpdateAsync(It.IsAny<Todo>())).ReturnsAsync(updateGenericRepositoryAsyncResponse);
+            setDoneTodoUseCase.ErrorNotifications.Should().HaveCount(0);
+            setDoneTodoUseCase.ErrorNotifications.Should().BeEmpty();
+        }
 
-//             var setDoneTodoUseCaseRequest = new SetDoneTodoUseCaseRequest(id, done);
+        /// <summary>
+        /// Should not execute successfully when failed to update
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="title"></param>
+        /// <param name="done"></param>
+        /// <returns></returns>
+        [Theory(DisplayName = "Should not execute successfully when failed to update")]
+        [InlineData(1, "Ir ao mercado.", true)]
+        [InlineData(2, "Ir ao Dentista.", false)]
+        [InlineData(3, "Fazer investimentos.", true)]
+        [InlineData(4, "Pagar as contas.", false)]
+        public async Task ShouldNotExecute_WhenFailedToUpdate(int id, string title, bool done)
+        {
+            // Arranje
+            var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
+            _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
 
-//             var setDoneTodoUseCase = new SetDoneTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object);
+            var updateGenericRepositoryAsyncResponse = false;
+            _genericRepositoryAsyncMock.Setup(x => x.UpdateAsync(It.IsAny<Todo>())).ReturnsAsync(updateGenericRepositoryAsyncResponse);
 
-//             // Act
-//             var setDoneTodoUseCaseResponse =  await setDoneTodoUseCase.RunAsync(setDoneTodoUseCaseRequest);
+            var setDoneTodoUseCaseRequest = new SetDoneTodoUseCaseRequest(id, done);
 
-//             // Assert
-//             setDoneTodoUseCaseResponse.Should().Be(default);
+            var setDoneTodoUseCase = new SetDoneTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _loggerMock.Object);
 
-//             setDoneTodoUseCase.HasErrorNotification.Should().BeTrue();
+            // Act
+            var setDoneTodoUseCaseResponse =  await setDoneTodoUseCase.RunAsync(setDoneTodoUseCaseRequest);
 
-//             setDoneTodoUseCase.ErrorNotifications.Should().HaveCount(1);
-//             setDoneTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
-//             setDoneTodoUseCase.ErrorNotifications.Should().ContainSingle();
-//             setDoneTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0006" && e.Message == "Failed to update Todo.");
+            // Assert
+            setDoneTodoUseCaseResponse.Should().Be(default);
 
-//             setDoneTodoUseCase.SuccessNotifications.Should().BeEmpty();
-//         }
-//     }
-// }
+            setDoneTodoUseCase.HasErrorNotification.Should().BeTrue();
+
+            setDoneTodoUseCase.ErrorNotifications.Should().HaveCount(1);
+            setDoneTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
+            setDoneTodoUseCase.ErrorNotifications.Should().ContainSingle();
+            setDoneTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0006" && e.Message == "Failed to update Todo.");
+
+            setDoneTodoUseCase.SuccessNotifications.Should().BeEmpty();
+        }
+    }
+}

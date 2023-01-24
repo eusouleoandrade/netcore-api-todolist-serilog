@@ -1,121 +1,127 @@
-﻿// using AutoMapper;
-// using Core.Application.Interfaces.Repositories;
-// using Core.Application.Mappings;
-// using Core.Application.UseCases;
-// using Core.Domain.Entities;
-// using FluentAssertions;
-// using Moq;
-// using Xunit;
+﻿using AutoMapper;
+using Core.Application.Interfaces.Repositories;
+using Core.Application.Mappings;
+using Core.Application.UseCases;
+using Core.Domain.Entities;
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
-// namespace Tests.Unit.Application.UseCases
-// {
-//     public class GetTodoUseCaseTest
-//     {
-//         private readonly IMapper _mapperMock;
-//         private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
+namespace Tests.Unit.Application.UseCases
+{
+    public class GetTodoUseCaseTest
+    {
+        private readonly IMapper _mapperMock;
+        private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
 
-//         public GetTodoUseCaseTest()
-//         {
-//             // Repository mock
-//             _genericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
+        private readonly Mock<ILogger<GetTodoUseCase>> _loggerMock;
 
-//             // Set auto mapper configs
-//             var mapperConfigurationMock = new MapperConfiguration(cfg => cfg.AddProfile(new GeneralProfile()));
-//             _mapperMock = mapperConfigurationMock.CreateMapper();
-//         }
+        public GetTodoUseCaseTest()
+        {
+            // Repository mock
+            _genericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
 
-//         /// <summary>
-//         /// Should execute successfully
-//         /// </summary>
-//         /// <param name="id"></param>
-//         /// <param name="title"></param>
-//         /// <param name="done"></param>
-//         /// <returns></returns>
-//         [Theory(DisplayName = "Should execute successfully")]
-//         [InlineData(1, "Ir ao mercado.", false)]
-//         [InlineData(1, "Fazer investimentos.", true)]
-//         [InlineData(1, "Fazer atividade física.", false)]
-//         [InlineData(1, "Pagar as contas do mês.", true)]
-//         public async Task ShouldExecuteSucessfully(int id, string title, bool done)
-//         {
-//             // Arranje
-//             var todo = new Todo(id, title, done);
+            // Logger mock
+            _loggerMock = new Mock<ILogger<GetTodoUseCase>>();
 
-//             _genericRepositoryAsyncMock.Setup(x => x.GetAsync(It.IsAny<int>())).ReturnsAsync(todo);
+            // Set auto mapper configs
+            var mapperConfigurationMock = new MapperConfiguration(cfg => cfg.AddProfile(new GeneralProfile()));
+            _mapperMock = mapperConfigurationMock.CreateMapper();
+        }
 
-//             var getTodoUseCase = new GetTodoUseCase(_genericRepositoryAsyncMock.Object, _mapperMock);
+        /// <summary>
+        /// Should execute successfully
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="title"></param>
+        /// <param name="done"></param>
+        /// <returns></returns>
+        [Theory(DisplayName = "Should execute successfully")]
+        [InlineData(1, "Ir ao mercado.", false)]
+        [InlineData(1, "Fazer investimentos.", true)]
+        [InlineData(1, "Fazer atividade física.", false)]
+        [InlineData(1, "Pagar as contas do mês.", true)]
+        public async Task ShouldExecuteSucessfully(int id, string title, bool done)
+        {
+            // Arranje
+            var todo = new Todo(id, title, done);
 
-//             // Act
-//             var getTodoUseCaseResponse = await getTodoUseCase.RunAsync(id);
+            _genericRepositoryAsyncMock.Setup(x => x.GetAsync(It.IsAny<int>())).ReturnsAsync(todo);
 
-//             // Assert
-//             getTodoUseCaseResponse.Should().NotBeNull();
-//             getTodoUseCaseResponse.Should().BeEquivalentTo(todo);
+            var getTodoUseCase = new GetTodoUseCase(_genericRepositoryAsyncMock.Object, _mapperMock, _loggerMock.Object);
 
-//             getTodoUseCase.Should().NotBeNull();
+            // Act
+            var getTodoUseCaseResponse = await getTodoUseCase.RunAsync(id);
 
-//             getTodoUseCase.HasErrorNotification.Should().BeFalse();
+            // Assert
+            getTodoUseCaseResponse.Should().NotBeNull();
+            getTodoUseCaseResponse.Should().BeEquivalentTo(todo);
 
-//             getTodoUseCase.ErrorNotifications.Should().BeEmpty();
-//             getTodoUseCase.ErrorNotifications.Should().HaveCount(0);
-//         }
+            getTodoUseCase.Should().NotBeNull();
 
-//         /// <summary>
-//         /// Should not execute when id is invalid
-//         /// </summary>
-//         /// <param name="id"></param>
-//         /// <returns></returns>
-//         [Theory(DisplayName = "Should not execute when id is invalid")]
-//         [InlineData(0)]
-//         [InlineData(-1)]
-//         public async Task ShouldNotExecute_WhenIdIsInvalid(int id)
-//         {
-//             // Arranje
-//             var getTodoUseCase = new GetTodoUseCase(_genericRepositoryAsyncMock.Object, _mapperMock);
+            getTodoUseCase.HasErrorNotification.Should().BeFalse();
 
-//             // Act
-//             var useCaseResponse = await getTodoUseCase.RunAsync(id);
+            getTodoUseCase.ErrorNotifications.Should().BeEmpty();
+            getTodoUseCase.ErrorNotifications.Should().HaveCount(0);
+        }
 
-//             // Assert
-//             useCaseResponse.Should().BeNull();
-//             useCaseResponse.Should().Be(default);
+        /// <summary>
+        /// Should not execute when id is invalid
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Theory(DisplayName = "Should not execute when id is invalid")]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task ShouldNotExecute_WhenIdIsInvalid(int id)
+        {
+            // Arranje
+            var getTodoUseCase = new GetTodoUseCase(_genericRepositoryAsyncMock.Object, _mapperMock, _loggerMock.Object);
 
-//             getTodoUseCase.HasErrorNotification.Should().BeTrue();
+            // Act
+            var useCaseResponse = await getTodoUseCase.RunAsync(id);
 
-//             getTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
-//             getTodoUseCase.ErrorNotifications.Should().HaveCount(1);
-//             getTodoUseCase.ErrorNotifications.Should().ContainSingle();
-//             getTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0005" && e.Message == $"Identifier {id} is invalid.");
+            // Assert
+            useCaseResponse.Should().BeNull();
+            useCaseResponse.Should().Be(default);
 
-//             getTodoUseCase.SuccessNotifications.Should().BeEmpty();
-//         }
+            getTodoUseCase.HasErrorNotification.Should().BeTrue();
 
-//         /// <summary>
-//         /// Should not execute when todo is null
-//         /// </summary>
-//         /// <returns></returns>
-//         [Fact(DisplayName = "Should not execute when todo is null")]
-//         public async Task ShouldNotExecute_WhenTodoIsNull()
-//         {
-//             // Arranje
-//             var getTodoUseCase = new GetTodoUseCase(_genericRepositoryAsyncMock.Object, _mapperMock);
-//             var idRandom = new Random().Next(1, 100);
+            getTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
+            getTodoUseCase.ErrorNotifications.Should().HaveCount(1);
+            getTodoUseCase.ErrorNotifications.Should().ContainSingle();
+            getTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0005" && e.Message == $"Identifier {id} is invalid.");
 
-//             // Act
-//             var useCaseResponse = await getTodoUseCase.RunAsync(idRandom);
+            getTodoUseCase.SuccessNotifications.Should().BeEmpty();
+        }
 
-//             // Assert
-//             useCaseResponse.Should().BeNull();
-//             useCaseResponse.Should().Be(default);
+        /// <summary>
+        /// Should not execute when todo is null
+        /// </summary>
+        /// <returns></returns>
+        [Fact(DisplayName = "Should not execute when todo is null")]
+        public async Task ShouldNotExecute_WhenTodoIsNull()
+        {
+            // Arranje
+            var getTodoUseCase = new GetTodoUseCase(_genericRepositoryAsyncMock.Object, _mapperMock, _loggerMock.Object);
+            var idRandom = new Random().Next(1, 100);
 
-//             getTodoUseCase.HasErrorNotification.Should().BeTrue();
+            // Act
+            var useCaseResponse = await getTodoUseCase.RunAsync(idRandom);
 
-//             getTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
-//             getTodoUseCase.ErrorNotifications.Should().HaveCount(1);
-//             getTodoUseCase.ErrorNotifications.Should().ContainSingle();
-//             getTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0004" && e.Message == $"Data of Todo {idRandom} not found.");
+            // Assert
+            useCaseResponse.Should().BeNull();
+            useCaseResponse.Should().Be(default);
 
-//             getTodoUseCase.SuccessNotifications.Should().BeEmpty();
-//         }
-//     }
-// }
+            getTodoUseCase.HasErrorNotification.Should().BeTrue();
+
+            getTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
+            getTodoUseCase.ErrorNotifications.Should().HaveCount(1);
+            getTodoUseCase.ErrorNotifications.Should().ContainSingle();
+            getTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0004" && e.Message == $"Data of Todo {idRandom} not found.");
+
+            getTodoUseCase.SuccessNotifications.Should().BeEmpty();
+        }
+    }
+}

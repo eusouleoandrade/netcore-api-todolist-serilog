@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using Serilog;
 
 namespace Presentation.WebApi.Middlewares
 {
+    [ExcludeFromCodeCoverage]
     public class HttpRequestLoggerHandlerMiddleware
     {
         private readonly RequestDelegate _next;

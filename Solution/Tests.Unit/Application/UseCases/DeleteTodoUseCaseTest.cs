@@ -1,106 +1,112 @@
-﻿// using AutoMapper;
-// using Core.Application.Dtos.Responses;
-// using Core.Application.Interfaces.Repositories;
-// using Core.Application.Interfaces.UseCases;
-// using Core.Application.Mappings;
-// using Core.Application.UseCases;
-// using Core.Domain.Entities;
-// using FluentAssertions;
-// using Moq;
-// using Xunit;
+﻿using AutoMapper;
+using Core.Application.Dtos.Responses;
+using Core.Application.Interfaces.Repositories;
+using Core.Application.Interfaces.UseCases;
+using Core.Application.Mappings;
+using Core.Application.UseCases;
+using Core.Domain.Entities;
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
-// namespace Tests.Unit.Application.UseCases
-// {
-//     public class DeleteTodoUseCaseTest
-//     {
-//         private readonly IMapper _mapperMock;
-//         private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
-//         private readonly Mock<IGetTodoUseCase> _getTodoUseCaseMock;
+namespace Tests.Unit.Application.UseCases
+{
+    public class DeleteTodoUseCaseTest
+    {
+        private readonly IMapper _mapperMock;
+        private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
+        private readonly Mock<IGetTodoUseCase> _getTodoUseCaseMock;
 
-//         public DeleteTodoUseCaseTest()
-//         {
-//             // Repository mock
-//             _genericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
+        private readonly Mock<ILogger<DeleteTodoUseCase>> _loggerMock;
 
-//             // UseCase mock
-//             _getTodoUseCaseMock = new Mock<IGetTodoUseCase>();
+        public DeleteTodoUseCaseTest()
+        {
+            // Repository mock
+            _genericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
 
-//             // Set auto mapper configs
-//             var mapperConfigurationMock = new MapperConfiguration(cfg => cfg.AddProfile(new GeneralProfile()));
-//             _mapperMock = mapperConfigurationMock.CreateMapper();
-//         }
+            // UseCase mock
+            _getTodoUseCaseMock = new Mock<IGetTodoUseCase>();
 
-//         /// <summary>
-//         /// Should execute successfully
-//         /// </summary>
-//         /// <param name="id"></param>
-//         /// <param name="title"></param>
-//         /// <param name="done"></param>
-//         /// <returns></returns>
-//         [Theory(DisplayName = "Should execute successfully")]
-//         [InlineData(1, "Ir ao mercado.", true)]
-//         [InlineData(2, "Ir ao Dentista.", false)]
-//         [InlineData(3, "Fazer investimentos.", true)]
-//         [InlineData(4, "Pagar as contas.", false)]
-//         public async Task ShouldExecuteSucessfully(int id, string title, bool done)
-//         {
-//             // Arranje
-//             var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
-//             _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
+            // Logger mock
+            _loggerMock = new Mock<ILogger<DeleteTodoUseCase>>();
 
-//             var deleteGenericRepositoryAsyncResponse = true;
-//             _genericRepositoryAsyncMock.Setup(x => x.DeleteAsync(It.IsAny<Todo>())).ReturnsAsync(deleteGenericRepositoryAsyncResponse);
+            // Set auto mapper configs
+            var mapperConfigurationMock = new MapperConfiguration(cfg => cfg.AddProfile(new GeneralProfile()));
+            _mapperMock = mapperConfigurationMock.CreateMapper();
+        }
 
-//             var deleteTodoUseCase = new DeleteTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _mapperMock);
+        /// <summary>
+        /// Should execute successfully
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="title"></param>
+        /// <param name="done"></param>
+        /// <returns></returns>
+        [Theory(DisplayName = "Should execute successfully")]
+        [InlineData(1, "Ir ao mercado.", true)]
+        [InlineData(2, "Ir ao Dentista.", false)]
+        [InlineData(3, "Fazer investimentos.", true)]
+        [InlineData(4, "Pagar as contas.", false)]
+        public async Task ShouldExecuteSucessfully(int id, string title, bool done)
+        {
+            // Arranje
+            var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
+            _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
 
-//             // Act
-//             var deleteUseCaseResponse = await deleteTodoUseCase.RunAsync(id);
+            var deleteGenericRepositoryAsyncResponse = true;
+            _genericRepositoryAsyncMock.Setup(x => x.DeleteAsync(It.IsAny<Todo>())).ReturnsAsync(deleteGenericRepositoryAsyncResponse);
 
-//             // Assert
-//             deleteUseCaseResponse.Should().BeTrue();
+            var deleteTodoUseCase = new DeleteTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _mapperMock, _loggerMock.Object);
 
-//             deleteTodoUseCase.HasErrorNotification.Should().BeFalse();
-//             deleteTodoUseCase.ErrorNotifications.Should().HaveCount(0);
-//             deleteTodoUseCase.ErrorNotifications.Should().BeEmpty();
-//         }
+            // Act
+            var deleteUseCaseResponse = await deleteTodoUseCase.RunAsync(id);
 
-//         /// <summary>
-//         /// Should not execute successfully when failed to remove
-//         /// </summary>
-//         /// <param name="id"></param>
-//         /// <param name="title"></param>
-//         /// <param name="done"></param>
-//         /// <returns></returns>
-//         [InlineData(1, "Ir ao mercado.", true)]
-//         [InlineData(2, "Ir ao Dentista.", false)]
-//         [InlineData(3, "Fazer investimentos.", true)]
-//         [InlineData(4, "Pagar as contas.", false)]
-//         [Theory(DisplayName = "Should not execute successfully when failed to remove")]
-//         public async Task ShouldNotExecute_WhenFailedToRemove(int id, string title, bool done)
-//         {
-//             // Arranje
-//             var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
-//             _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
+            // Assert
+            deleteUseCaseResponse.Should().BeTrue();
 
-//             var deleteGenericRepositoryAsyncResponse = false;
-//             _genericRepositoryAsyncMock.Setup(x => x.DeleteAsync(It.IsAny<Todo>())).ReturnsAsync(deleteGenericRepositoryAsyncResponse);
+            deleteTodoUseCase.HasErrorNotification.Should().BeFalse();
+            deleteTodoUseCase.ErrorNotifications.Should().HaveCount(0);
+            deleteTodoUseCase.ErrorNotifications.Should().BeEmpty();
+        }
 
-//             var deleteTodoUseCase = new DeleteTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _mapperMock);
+        /// <summary>
+        /// Should not execute successfully when failed to remove
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="title"></param>
+        /// <param name="done"></param>
+        /// <returns></returns>
+        [InlineData(1, "Ir ao mercado.", true)]
+        [InlineData(2, "Ir ao Dentista.", false)]
+        [InlineData(3, "Fazer investimentos.", true)]
+        [InlineData(4, "Pagar as contas.", false)]
+        [Theory(DisplayName = "Should not execute successfully when failed to remove")]
+        public async Task ShouldNotExecute_WhenFailedToRemove(int id, string title, bool done)
+        {
+            // Arranje
+            var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
+            _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
 
-//             // Act
-//             var deleteUseCaseResponse = await deleteTodoUseCase.RunAsync(id);
+            var deleteGenericRepositoryAsyncResponse = false;
+            _genericRepositoryAsyncMock.Setup(x => x.DeleteAsync(It.IsAny<Todo>())).ReturnsAsync(deleteGenericRepositoryAsyncResponse);
 
-//             // Assert
-//             deleteUseCaseResponse.Should().Be(default);
+            var deleteTodoUseCase = new DeleteTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _mapperMock, _loggerMock.Object);
 
-//             deleteTodoUseCase.HasErrorNotification.Should().BeTrue();
+            // Act
+            var deleteUseCaseResponse = await deleteTodoUseCase.RunAsync(id);
 
-//             deleteTodoUseCase.ErrorNotifications.Should().HaveCount(1);
-//             deleteTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
-//             deleteTodoUseCase.ErrorNotifications.Should().ContainSingle();
-//             deleteTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0003" && e.Message == "Failed to remove Todo.");
+            // Assert
+            deleteUseCaseResponse.Should().Be(default);
 
-//             deleteTodoUseCase.SuccessNotifications.Should().BeEmpty();
-//         }
-//     }
-// }
+            deleteTodoUseCase.HasErrorNotification.Should().BeTrue();
+
+            deleteTodoUseCase.ErrorNotifications.Should().HaveCount(1);
+            deleteTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
+            deleteTodoUseCase.ErrorNotifications.Should().ContainSingle();
+            deleteTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0003" && e.Message == "Failed to remove Todo.");
+
+            deleteTodoUseCase.SuccessNotifications.Should().BeEmpty();
+        }
+    }
+}
