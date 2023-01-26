@@ -221,5 +221,23 @@ namespace Core.Application.Resources {
                 return ResourceManager.GetString("X0_IS_REQUIRED_TXT", resourceCulture);
             }
         }
+
+        /// <summary>
+        /// COD0009 TXT
+        /// </summary>
+         public static string OBJECT_X0_IS_NULL_TXT {
+            get {
+                return ResourceManager.GetString("OBJECT_X0_IS_NULL_TXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        /// COD0009 COD
+        /// </summary>
+        public static string OBJECT_X0_IS_NULL_COD {
+            get {
+                return ResourceManager.GetString("OBJECT_X0_IS_NULL_COD", resourceCulture);
+            }
+        }
     }
 }

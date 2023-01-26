@@ -5,6 +5,7 @@ using Core.Application.Resources;
 using Core.Domain.Entities;
 using Infra.Notification.Abstractions;
 using Infra.Notification.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Core.Application.UseCases
 {
@@ -12,15 +13,19 @@ namespace Core.Application.UseCases
     {
         private readonly IGenericRepositoryAsync<Todo, int> _genericRepositoryAsync;
         private readonly IGetTodoUseCase _getTodoUseCase;
+        private readonly ILogger<UpdateTodoUseCase> _logger;
 
-        public UpdateTodoUseCase(IGenericRepositoryAsync<Todo, int> genericRepositoryAsync, IGetTodoUseCase getTodoUseCase)
+        public UpdateTodoUseCase(IGenericRepositoryAsync<Todo, int> genericRepositoryAsync, IGetTodoUseCase getTodoUseCase, ILogger<UpdateTodoUseCase> logger)
         {
             _genericRepositoryAsync = genericRepositoryAsync;
             _getTodoUseCase = getTodoUseCase;
+            _logger = logger;
         }
 
         public async Task<bool> RunAsync(UpdateTodoUseCaseRequest request)
         {
+            _logger.LogInformation(message: "Start useCase {0} > method {1}.", nameof(UpdateTodoUseCase), nameof(RunAsync));
+
             if (request.HasErrorNotification)
             {
                 AddErrorNotifications(request);
@@ -28,6 +33,12 @@ namespace Core.Application.UseCases
             }
 
             var getTodoUseCaseResponse = await _getTodoUseCase.RunAsync(request.Id);
+
+            if (getTodoUseCaseResponse is null)
+            {
+                AddErrorNotification(Msg.OBJECT_X0_IS_NULL_COD, Msg.OBJECT_X0_IS_NULL_TXT.ToFormat("getTodoUseCaseResponse"));
+                return default;
+            }
 
             if (_getTodoUseCase.HasErrorNotification)
             {
@@ -40,7 +51,12 @@ namespace Core.Application.UseCases
             var updated = await _genericRepositoryAsync.UpdateAsync(todo);
 
             if (!updated)
+            {
                 AddErrorNotification(Msg.FAILED_TO_UPDATE_X0_COD, Msg.FAILED_TO_UPDATE_X0_TXT.ToFormat("Todo"));
+                return default;
+            }
+
+            _logger.LogInformation("Finishes successfully useCase {0} > method {1}.", nameof(UpdateTodoUseCase), nameof(RunAsync));
 
             return updated;
         }

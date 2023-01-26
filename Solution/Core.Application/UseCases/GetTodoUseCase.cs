@@ -6,6 +6,7 @@ using Core.Application.Resources;
 using Core.Domain.Entities;
 using Infra.Notification.Abstractions;
 using Infra.Notification.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Core.Application.UseCases
 {
@@ -13,15 +14,19 @@ namespace Core.Application.UseCases
     {
         private readonly IGenericRepositoryAsync<Todo, int> _genericRepositoryAsync;
         private readonly IMapper _mapper;
+        private readonly ILogger<GetTodoUseCase> _logger;
 
-        public GetTodoUseCase(IGenericRepositoryAsync<Todo, int> genericRepositoryAsync, IMapper mapper)
+        public GetTodoUseCase(IGenericRepositoryAsync<Todo, int> genericRepositoryAsync, IMapper mapper, ILogger<GetTodoUseCase> logger)
         {
             _genericRepositoryAsync = genericRepositoryAsync;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<GetTodoUseCaseResponse?> RunAsync(int id)
         {
+            _logger.LogInformation(message: "Start useCase {0} > method {1}.", nameof(GetTodoUseCase), nameof(RunAsync));
+
             Validade(id);
 
             if (HasErrorNotification)
@@ -36,6 +41,8 @@ namespace Core.Application.UseCases
             }
 
             var useCaseResponse = _mapper.Map<GetTodoUseCaseResponse>(todo);
+
+            _logger.LogInformation("Finishes successfully useCase {0} > method {1}.", nameof(GetTodoUseCase), nameof(RunAsync));
 
             return useCaseResponse;
         }

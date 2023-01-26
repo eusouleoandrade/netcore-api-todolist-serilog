@@ -6,7 +6,9 @@ using Core.Application.Mappings;
 using Core.Application.UseCases;
 using Core.Domain.Entities;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
+using Tests.Unit.Extensions;
 using Xunit;
 
 namespace Tests.Unit.Application.UseCases
@@ -17,6 +19,8 @@ namespace Tests.Unit.Application.UseCases
         private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
         private readonly Mock<IGetTodoUseCase> _getTodoUseCaseMock;
 
+        private readonly Mock<ILogger<DeleteTodoUseCase>> _loggerMock;
+
         public DeleteTodoUseCaseTest()
         {
             // Repository mock
@@ -24,6 +28,9 @@ namespace Tests.Unit.Application.UseCases
 
             // UseCase mock
             _getTodoUseCaseMock = new Mock<IGetTodoUseCase>();
+
+            // Logger mock
+            _loggerMock = new Mock<ILogger<DeleteTodoUseCase>>();
 
             // Set auto mapper configs
             var mapperConfigurationMock = new MapperConfiguration(cfg => cfg.AddProfile(new GeneralProfile()));
@@ -51,7 +58,7 @@ namespace Tests.Unit.Application.UseCases
             var deleteGenericRepositoryAsyncResponse = true;
             _genericRepositoryAsyncMock.Setup(x => x.DeleteAsync(It.IsAny<Todo>())).ReturnsAsync(deleteGenericRepositoryAsyncResponse);
 
-            var deleteTodoUseCase = new DeleteTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _mapperMock);
+            var deleteTodoUseCase = new DeleteTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _mapperMock, _loggerMock.Object);
 
             // Act
             var deleteUseCaseResponse = await deleteTodoUseCase.RunAsync(id);
@@ -62,6 +69,10 @@ namespace Tests.Unit.Application.UseCases
             deleteTodoUseCase.HasErrorNotification.Should().BeFalse();
             deleteTodoUseCase.ErrorNotifications.Should().HaveCount(0);
             deleteTodoUseCase.ErrorNotifications.Should().BeEmpty();
+
+            _loggerMock
+                .VerifyLogger("Start useCase DeleteTodoUseCase > method RunAsync.", LogLevel.Information)
+                .VerifyLogger("Finishes successfully useCase DeleteTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -85,7 +96,7 @@ namespace Tests.Unit.Application.UseCases
             var deleteGenericRepositoryAsyncResponse = false;
             _genericRepositoryAsyncMock.Setup(x => x.DeleteAsync(It.IsAny<Todo>())).ReturnsAsync(deleteGenericRepositoryAsyncResponse);
 
-            var deleteTodoUseCase = new DeleteTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _mapperMock);
+            var deleteTodoUseCase = new DeleteTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _mapperMock, _loggerMock.Object);
 
             // Act
             var deleteUseCaseResponse = await deleteTodoUseCase.RunAsync(id);
@@ -101,6 +112,8 @@ namespace Tests.Unit.Application.UseCases
             deleteTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0003" && e.Message == "Failed to remove Todo.");
 
             deleteTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase DeleteTodoUseCase > method RunAsync.", LogLevel.Information);
         }
     }
 }

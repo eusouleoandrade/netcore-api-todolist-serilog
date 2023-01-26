@@ -1,7 +1,5 @@
-﻿using System;
-using Xunit;
+﻿using Xunit;
 using Core.Application.UseCases;
-using Core.Application.Interfaces;
 using Moq;
 using Core.Application.Interfaces.Repositories;
 using Core.Domain.Entities;
@@ -9,6 +7,8 @@ using Core.Application.Interfaces.UseCases;
 using Core.Application.Dtos.Requests;
 using Core.Application.Dtos.Responses;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Tests.Unit.Extensions;
 
 namespace Tests.Unit.Application.UseCases
 {
@@ -17,10 +17,15 @@ namespace Tests.Unit.Application.UseCases
         private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
         private readonly Mock<IGetTodoUseCase> _getTodoUseCaseMock;
 
+        private readonly Mock<ILogger<UpdateTodoUseCase>> _loggerMock;
+
 		public UpdateTodoUseCaseTest()
 		{
             // Repository mock
             _genericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
+
+            // Logger mock
+            _loggerMock = new Mock<ILogger<UpdateTodoUseCase>>();
 
             // UseCase mock
             _getTodoUseCaseMock = new Mock<IGetTodoUseCase>();
@@ -47,7 +52,7 @@ namespace Tests.Unit.Application.UseCases
             var updateGenericRepositoryAsyncResponse = true;
             _genericRepositoryAsyncMock.Setup(x => x.UpdateAsync(It.IsAny<Todo>())).ReturnsAsync(updateGenericRepositoryAsyncResponse);
 
-            var updateTodoUseCase = new UpdateTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object);
+            var updateTodoUseCase = new UpdateTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _loggerMock.Object);
 
             var updateTodoUseCaseRequest = new UpdateTodoUseCaseRequest(id, $"{title} updated", !done);
 
@@ -61,6 +66,10 @@ namespace Tests.Unit.Application.UseCases
 
             updateTodoUseCase.ErrorNotifications.Should().HaveCount(0);
             updateTodoUseCase.ErrorNotifications.Should().BeEmpty();
+            
+            _loggerMock
+                .VerifyLogger("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information)
+                .VerifyLogger("Finishes successfully useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -76,7 +85,7 @@ namespace Tests.Unit.Application.UseCases
         public async Task ShouldNotExecute_WhenIdIsInvalid(int id, string title, bool done)
         {
             // Arranje
-            var updateTodoUseCase = new UpdateTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object);
+            var updateTodoUseCase = new UpdateTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _loggerMock.Object);
 
             var updateTodoUseCaseRequest = new UpdateTodoUseCaseRequest(id, title, done);
 
@@ -94,6 +103,8 @@ namespace Tests.Unit.Application.UseCases
             updateTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0005" && e.Message == $"Identifier {id} is invalid.");
 
             updateTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -109,7 +120,7 @@ namespace Tests.Unit.Application.UseCases
         public async Task ShouldNotExecute_WhenTitleIsInvalid(int id, string title, bool done)
         {
             // Arranje
-            var updateTodoUseCase = new UpdateTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object);
+            var updateTodoUseCase = new UpdateTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _loggerMock.Object);
 
             var updateTodoUseCaseRequest = new UpdateTodoUseCaseRequest(id, title, done);
 
@@ -127,6 +138,8 @@ namespace Tests.Unit.Application.UseCases
             updateTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0001" && e.Message == "Title is required.");
 
             updateTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -150,7 +163,7 @@ namespace Tests.Unit.Application.UseCases
             var getTodoUseCaseResponse = new GetTodoUseCaseResponse(id, title, done);
             _getTodoUseCaseMock.Setup(x => x.RunAsync(It.IsAny<int>())).ReturnsAsync(getTodoUseCaseResponse);
 
-            var updateTodoUseCase = new UpdateTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object);
+            var updateTodoUseCase = new UpdateTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _loggerMock.Object);
 
             var updateTodoUseCaseRequest = new UpdateTodoUseCaseRequest(id, $"{title} updated", !done);
 
@@ -168,6 +181,8 @@ namespace Tests.Unit.Application.UseCases
             updateTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0006" && e.Message == "Failed to update Todo.");
 
             updateTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
     }
 }

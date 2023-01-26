@@ -30,7 +30,7 @@ namespace Presentation.WebApi.Middlewares
             // Add correlationId in the traceIdentifier of httpContext
             httpContext.TraceIdentifier = correlationId;
 
-            // Aplica o correlationId ao cabeçalho de resposta para rastreamento lado cliente
+            // Add correlationId in the header response
             if (_options.IncludeInResponse)
             {
                 httpContext.Response.OnStarting(() =>
@@ -40,7 +40,12 @@ namespace Presentation.WebApi.Middlewares
                 });
             }
 
-            await _next(httpContext);
+           // Add correlationId in the logger
+            var logger = httpContext.RequestServices.GetRequiredService<ILogger<CorrelationIdHandlerMiddleware>>();
+            using (logger.BeginScope("{@CorrelationId}", correlationId))
+            {
+                await _next(httpContext);
+            }
         }
     }
 }

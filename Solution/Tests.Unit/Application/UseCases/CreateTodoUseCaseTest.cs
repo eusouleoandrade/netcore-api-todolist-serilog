@@ -5,7 +5,9 @@ using Core.Application.Mappings;
 using Core.Application.UseCases;
 using Core.Domain.Entities;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
+using Tests.Unit.Extensions;
 using Xunit;
 
 namespace Tests.Unit.Application.UseCases
@@ -15,10 +17,15 @@ namespace Tests.Unit.Application.UseCases
         private readonly IMapper _mapperMock;
         private readonly Mock<ITodoRepositoryAsync> _todoRepositoryAsyncMock;
 
+        private readonly Mock<ILogger<CreateTodoUseCase>> _loggerMock;
+
         public CreateTodoUseCaseTest()
         {
-            // Mock repository
+            // Repository mock
             _todoRepositoryAsyncMock = new Mock<ITodoRepositoryAsync>();
+
+            // Logger mock
+            _loggerMock = new Mock<ILogger<CreateTodoUseCase>>();
 
             // Set auto mapper configs
             var mapperConfigurationMock = new MapperConfiguration(cfg => cfg.AddProfile(new GeneralProfile()));
@@ -42,7 +49,7 @@ namespace Tests.Unit.Application.UseCases
             var todo = new Todo(id, title, false);
             _todoRepositoryAsyncMock.Setup(x => x.CreateAsync(It.IsAny<Todo>())).ReturnsAsync(todo);
 
-            var createTodoUseCase = new CreateTodoUseCase(_mapperMock, _todoRepositoryAsyncMock.Object);
+            var createTodoUseCase = new CreateTodoUseCase(_mapperMock, _todoRepositoryAsyncMock.Object, _loggerMock.Object);
             var useCaseRequest = new CreateTodoUseCaseRequest(title);
 
             // Act
@@ -55,6 +62,10 @@ namespace Tests.Unit.Application.UseCases
             createTodoUseCase.HasErrorNotification.Should().BeFalse();
             createTodoUseCase.ErrorNotifications.Should().HaveCount(0);
             createTodoUseCase.ErrorNotifications.Should().BeEmpty();
+
+            _loggerMock
+                .VerifyLogger("Start useCase CreateTodoUseCase > method RunAsync.", LogLevel.Information)
+                .VerifyLogger("Finishes successfully useCase CreateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -68,7 +79,7 @@ namespace Tests.Unit.Application.UseCases
         public async Task ShouldNotExecute_WhenTitleIsInvalid(string title)
         {
             // Arranje
-            var createTodoUseCase = new CreateTodoUseCase(_mapperMock, _todoRepositoryAsyncMock.Object);
+            var createTodoUseCase = new CreateTodoUseCase(_mapperMock, _todoRepositoryAsyncMock.Object, _loggerMock.Object);
             var useCaseRequest = new CreateTodoUseCaseRequest(title);
 
             // Act
@@ -86,6 +97,8 @@ namespace Tests.Unit.Application.UseCases
             createTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0001" && e.Message == "Title is required.");
 
             createTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase CreateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
     }
 }

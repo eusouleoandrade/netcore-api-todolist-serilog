@@ -5,6 +5,7 @@ using Core.Application.Resources;
 using Core.Domain.Entities;
 using Dapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using static Dapper.SqlMapper;
 
 namespace Infra.Persistence.Repositories
@@ -12,13 +13,20 @@ namespace Infra.Persistence.Repositories
     [ExcludeFromCodeCoverage]
     public class TodoRepositoryAsync : GenericRepositoryAsync<Todo, int>, ITodoRepositoryAsync
     {
-        public TodoRepositoryAsync(IConfiguration configuration)
-        : base(configuration) { }
+        private readonly ILogger<TodoRepositoryAsync> _logger;
+
+        public TodoRepositoryAsync(IConfiguration configuration, ILogger<TodoRepositoryAsync> logger)
+            : base(configuration, logger)
+        {
+            _logger = logger;
+        }
 
         public async Task<Todo?> CreateAsync(Todo entity)
         {
             try
             {
+                _logger.LogInformation(message: "Start repository {0} > method {1}.", nameof(TodoRepositoryAsync), nameof(CreateAsync));
+
                 string insertSql = @"INSERT INTO todo (title, done)
                                     VALUES(@title, @done)
                                     RETURNING id;";
@@ -31,7 +39,10 @@ namespace Infra.Persistence.Repositories
                 });
 
                 if (id > decimal.Zero)
+                {
+                    _logger.LogInformation("Finishes successfully repository {0} > method {1}.", nameof(TodoRepositoryAsync), nameof(CreateAsync));
                     return await base.GetAsync(id);
+                }
 
                 return await Task.FromResult<Todo?>(default);
             }

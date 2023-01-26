@@ -1,6 +1,7 @@
 ﻿using Core.Application.Dtos.Wrappers;
 using Infra.Notification.Contexts;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Serilog;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text.Json;
@@ -26,6 +27,9 @@ namespace Presentation.WebApi.Filters
                 var response = new Response(succeeded: false, errors: _notificationContext.ErrorNotifications);
 
                 string notifications = JsonSerializer.Serialize(response);
+
+                // logger
+                Log.Warning("Finalizes request with notifications. Notifications: {notifications}", notifications);
 
                 await context.HttpContext.Response.WriteAsync(notifications);
 

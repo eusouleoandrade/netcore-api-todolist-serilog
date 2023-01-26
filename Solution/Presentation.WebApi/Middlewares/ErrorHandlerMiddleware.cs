@@ -1,6 +1,7 @@
 ﻿using Core.Application.Dtos.Wrappers;
 using Core.Application.Exceptions;
 using Core.Application.Resources;
+using Serilog;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text.Json;
@@ -23,15 +24,18 @@ namespace Presentation.WebApi.Middlewares
             {
                 await _next(httpContext);
             }
-            catch (Exception error)
+            catch (Exception ex)
             {
+                // Logger
+                Log.Error(ex, "Finalizes request with errors.");
+
                 string message;
 
-                switch (error)
+                switch (ex)
                 {
                     case AppException:
                         httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                        message = error.Message;
+                        message = ex.Message;
 
                         break;
                     default:
