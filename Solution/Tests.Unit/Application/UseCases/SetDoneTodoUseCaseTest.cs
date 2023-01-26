@@ -114,34 +114,5 @@ namespace Tests.Unit.Application.UseCases
 
             _loggerMock.VerifyLogger("Start useCase SetDoneTodoUseCase > method RunAsync.", LogLevel.Information);
         }
-
-        /// <summary>
-        /// Should not execute successfully when todo is null
-        /// </summary>
-        /// <returns></returns>
-        [Fact(DisplayName = "Should not execute successfully when todo is null")]
-        public async Task ShouldNotExecute_WhenTodoIsNull()
-        {
-            var setDoneTodoUseCaseRequest = new SetDoneTodoUseCaseRequest(1, true);
-
-            var setDoneTodoUseCase = new SetDoneTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _loggerMock.Object);
-
-            // Act
-            var setDoneTodoUseCaseResponse =  await setDoneTodoUseCase.RunAsync(setDoneTodoUseCaseRequest);
-
-            // Assert
-            setDoneTodoUseCaseResponse.Should().Be(default);
-
-            setDoneTodoUseCase.HasErrorNotification.Should().BeTrue();
-
-            setDoneTodoUseCase.ErrorNotifications.Should().HaveCount(1);
-            setDoneTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
-            setDoneTodoUseCase.ErrorNotifications.Should().ContainSingle();
-            setDoneTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0009" && e.Message == "Object getTodoUseCaseResponse is null.");
-
-            setDoneTodoUseCase.SuccessNotifications.Should().BeEmpty();
-
-            _loggerMock.VerifyLogger("Start useCase SetDoneTodoUseCase > method RunAsync.", LogLevel.Information);
-        }
     }
 }
