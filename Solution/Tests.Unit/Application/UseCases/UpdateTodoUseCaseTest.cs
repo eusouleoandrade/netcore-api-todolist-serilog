@@ -103,6 +103,8 @@ namespace Tests.Unit.Application.UseCases
             updateTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0005" && e.Message == $"Identifier {id} is invalid.");
 
             updateTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -136,6 +138,8 @@ namespace Tests.Unit.Application.UseCases
             updateTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0001" && e.Message == "Title is required.");
 
             updateTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -177,6 +181,8 @@ namespace Tests.Unit.Application.UseCases
             updateTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0006" && e.Message == "Failed to update Todo.");
 
             updateTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase UpdateTodoUseCase > method RunAsync.", LogLevel.Information);
         }
     }
 }

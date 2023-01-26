@@ -8,6 +8,7 @@ using Core.Domain.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Tests.Unit.Extensions;
 using Xunit;
 
 namespace Tests.Unit.Application.UseCases
@@ -68,6 +69,10 @@ namespace Tests.Unit.Application.UseCases
             deleteTodoUseCase.HasErrorNotification.Should().BeFalse();
             deleteTodoUseCase.ErrorNotifications.Should().HaveCount(0);
             deleteTodoUseCase.ErrorNotifications.Should().BeEmpty();
+
+            _loggerMock
+                .VerifyLogger("Start useCase DeleteTodoUseCase > method RunAsync.", LogLevel.Information)
+                .VerifyLogger("Finishes successfully useCase DeleteTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -107,6 +112,8 @@ namespace Tests.Unit.Application.UseCases
             deleteTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0003" && e.Message == "Failed to remove Todo.");
 
             deleteTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase DeleteTodoUseCase > method RunAsync.", LogLevel.Information);
         }
     }
 }

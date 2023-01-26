@@ -1,14 +1,13 @@
-﻿using AutoMapper;
-using Core.Application.Dtos.Requests;
+﻿using Core.Application.Dtos.Requests;
 using Core.Application.Dtos.Responses;
 using Core.Application.Interfaces.Repositories;
 using Core.Application.Interfaces.UseCases;
-using Core.Application.Mappings;
 using Core.Application.UseCases;
 using Core.Domain.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Tests.Unit.Extensions;
 using Xunit;
 
 namespace Tests.Unit.Application.UseCases
@@ -67,6 +66,10 @@ namespace Tests.Unit.Application.UseCases
 
             setDoneTodoUseCase.ErrorNotifications.Should().HaveCount(0);
             setDoneTodoUseCase.ErrorNotifications.Should().BeEmpty();
+
+            _loggerMock
+                .VerifyLogger("Start useCase SetDoneTodoUseCase > method RunAsync.", LogLevel.Information)
+                .VerifyLogger("Finishes successfully useCase SetDoneTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -108,6 +111,37 @@ namespace Tests.Unit.Application.UseCases
             setDoneTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0006" && e.Message == "Failed to update Todo.");
 
             setDoneTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase SetDoneTodoUseCase > method RunAsync.", LogLevel.Information);
+        }
+
+        /// <summary>
+        /// Should not execute successfully when todo is null
+        /// </summary>
+        /// <returns></returns>
+        [Fact(DisplayName = "Should not execute successfully when todo is null")]
+        public async Task ShouldNotExecute_WhenTodoIsNull()
+        {
+            var setDoneTodoUseCaseRequest = new SetDoneTodoUseCaseRequest(1, true);
+
+            var setDoneTodoUseCase = new SetDoneTodoUseCase(_genericRepositoryAsyncMock.Object, _getTodoUseCaseMock.Object, _loggerMock.Object);
+
+            // Act
+            var setDoneTodoUseCaseResponse =  await setDoneTodoUseCase.RunAsync(setDoneTodoUseCaseRequest);
+
+            // Assert
+            setDoneTodoUseCaseResponse.Should().Be(default);
+
+            setDoneTodoUseCase.HasErrorNotification.Should().BeTrue();
+
+            setDoneTodoUseCase.ErrorNotifications.Should().HaveCount(1);
+            setDoneTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
+            setDoneTodoUseCase.ErrorNotifications.Should().ContainSingle();
+            setDoneTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0009" && e.Message == "Object getTodoUseCaseResponse is null.");
+
+            setDoneTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase SetDoneTodoUseCase > method RunAsync.", LogLevel.Information);
         }
     }
 }

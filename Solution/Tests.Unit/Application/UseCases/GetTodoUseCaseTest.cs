@@ -6,6 +6,7 @@ using Core.Domain.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Tests.Unit.Extensions;
 using Xunit;
 
 namespace Tests.Unit.Application.UseCases
@@ -64,6 +65,10 @@ namespace Tests.Unit.Application.UseCases
 
             getTodoUseCase.ErrorNotifications.Should().BeEmpty();
             getTodoUseCase.ErrorNotifications.Should().HaveCount(0);
+
+            _loggerMock
+                .VerifyLogger("Start useCase GetTodoUseCase > method RunAsync.", LogLevel.Information)
+                .VerifyLogger("Finishes successfully useCase GetTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -94,6 +99,8 @@ namespace Tests.Unit.Application.UseCases
             getTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0005" && e.Message == $"Identifier {id} is invalid.");
 
             getTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase GetTodoUseCase > method RunAsync.", LogLevel.Information);
         }
 
         /// <summary>
@@ -122,6 +129,8 @@ namespace Tests.Unit.Application.UseCases
             getTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0004" && e.Message == $"Data of Todo {idRandom} not found.");
 
             getTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase GetTodoUseCase > method RunAsync.", LogLevel.Information);
         }
     }
 }
