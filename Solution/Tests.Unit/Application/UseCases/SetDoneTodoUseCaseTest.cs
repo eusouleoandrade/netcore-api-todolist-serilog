@@ -1,7 +1,9 @@
-﻿using Core.Application.Dtos.Requests;
+﻿using AutoMapper;
+using Core.Application.Dtos.Requests;
 using Core.Application.Dtos.Responses;
 using Core.Application.Interfaces.Repositories;
 using Core.Application.Interfaces.UseCases;
+using Core.Application.Mappings;
 using Core.Application.UseCases;
 using Core.Domain.Entities;
 using FluentAssertions;
@@ -15,20 +17,33 @@ namespace Tests.Unit.Application.UseCases
     public class SetDoneTodoUseCaseTest
     {
         private readonly Mock<IGenericRepositoryAsync<Todo, int>> _genericRepositoryAsyncMock;
+
+        private readonly Mock<IGenericRepositoryAsync<Todo, int>> _getGenericRepositoryAsyncMock;
+
         private readonly Mock<IGetTodoUseCase> _getTodoUseCaseMock;
 
         private readonly Mock<ILogger<SetDoneTodoUseCase>> _loggerMock;
+
+        private readonly Mock<ILogger<GetTodoUseCase>> _loggerGetTodoUseCaseMock;
+
+        private readonly IMapper _mapperMock;
 
         public SetDoneTodoUseCaseTest()
         {
             // Repository mock
             _genericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
+            _getGenericRepositoryAsyncMock = new Mock<IGenericRepositoryAsync<Todo, int>>();
 
             // Logger mock
             _loggerMock = new Mock<ILogger<SetDoneTodoUseCase>>();
+            _loggerGetTodoUseCaseMock = new Mock<ILogger<GetTodoUseCase>>();
 
             // UseCase mock
             _getTodoUseCaseMock = new Mock<IGetTodoUseCase>();
+
+            // Set auto mapper configs
+            var mapperConfigurationMock = new MapperConfiguration(cfg => cfg.AddProfile(new GeneralProfile()));
+            _mapperMock = mapperConfigurationMock.CreateMapper();
         }
 
         /// <summary>
@@ -109,6 +124,42 @@ namespace Tests.Unit.Application.UseCases
             setDoneTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
             setDoneTodoUseCase.ErrorNotifications.Should().ContainSingle();
             setDoneTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0006" && e.Message == "Failed to update Todo.");
+
+            setDoneTodoUseCase.SuccessNotifications.Should().BeEmpty();
+
+            _loggerMock.VerifyLogger("Start useCase SetDoneTodoUseCase > method RunAsync.", LogLevel.Information);
+        }
+
+        /// <summary>
+        /// Should not execute when not finding todo
+        /// </summary>
+        /// <returns></returns>
+        [Fact(DisplayName = "Should not execute when not finding todo")]
+        public async Task ShouldNotExecute_WhenNotFindingTodo()
+        {
+            // Arranje
+            _getGenericRepositoryAsyncMock.Setup(x => x.GetAsync(It.IsAny<int>()));
+
+            IGetTodoUseCase getTodoUseCase = new GetTodoUseCase(_getGenericRepositoryAsyncMock.Object, _mapperMock, _loggerGetTodoUseCaseMock.Object);
+            
+            _ = await getTodoUseCase.RunAsync(1);
+
+            var setDoneTodoUseCase = new SetDoneTodoUseCase(_genericRepositoryAsyncMock.Object, getTodoUseCase, _loggerMock.Object);
+
+            var setDoneTodoUseCaseRequest = new SetDoneTodoUseCaseRequest(1, true);
+
+            // Act
+            var setDoneTodoUseCaseResponse =  await setDoneTodoUseCase.RunAsync(setDoneTodoUseCaseRequest);
+
+            // Assert
+            setDoneTodoUseCaseResponse.Should().Be(default);
+
+            setDoneTodoUseCase.HasErrorNotification.Should().BeTrue();
+
+            setDoneTodoUseCase.ErrorNotifications.Should().NotBeEmpty();
+            setDoneTodoUseCase.ErrorNotifications.Should().HaveCount(1);
+            setDoneTodoUseCase.ErrorNotifications.Should().ContainSingle();
+            setDoneTodoUseCase.ErrorNotifications.Should().Satisfy(e => e.Key == "COD0004" && e.Message == "Data of Todo 1 not found.");
 
             setDoneTodoUseCase.SuccessNotifications.Should().BeEmpty();
 
